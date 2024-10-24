@@ -1,57 +1,51 @@
 #!/usr/bin/python3
 """
-Read stdin line by line and computes metrics
-Input format: <IP Address> - [<date>] "GET /projects/260 HTTP/1.1"
-<status code> <file size>, skip line if not this format
-After every 10minutes or keyboard interrupt (CTRL + C)
-print these from beginning: number of lines by status code
-possible status codes: 200, 301, 400, 401, 404, 405, and 500
-if status code isn't an integer, do not print it
-format: <status code>: <number>
-Status code must be printed in ascending order
+Task 0. Log parsing
+
+A script that reads stdin line by line and computes metrics.
 """
+
 import sys
 
 
-def print_msg(codes, file_size):
+def printStats(file_size, status):
+    """printStats
+
+    This function takes the total file size and the
+    statues that were called and prints them.
+
+    Arguments:
+        file_size (int): The total file size to be printed.
+        status (dict{int, int}): A dictionary of the statues that were called.
+    """
     print("File size: {}".format(file_size))
-    for key, val in sorted(codes.items()):
-        if val != 0:
-            print("{}: {}".format(key, val))
+    for key, value in sorted(status.items()):
+        if value != 0:
+            print("{}: {}".format(key, value))
 
 
-file_size = 0
-code = 0
-count_lines = 0
-codes = {
-    "200": 0,
-    "301": 0,
-    "400": 0,
-    "401": 0,
-    "403": 0,
-    "404": 0,
-    "405": 0,
-    "500": 0
-}
-
+total_file_size = 0
+count = 0
+possible_status = {200: 0, 301: 0, 400: 0, 401: 0,
+                   403: 0, 404: 0, 405: 0, 500: 0}
 try:
     for line in sys.stdin:
-        parsed_line = line.split()
-        parsed_line = parsed_line[::-1]
+        args = line.split()
 
-        if len(parsed_line) > 2:
-            count_lines += 1
+        status_code = int(args[-2])
+        file_size = int(args[-1])
 
-            if count_lines <= 10:
-                file_size += int(parsed_line[0])
-                code = parsed_line[1]
+        if status_code in possible_status:
+            possible_status[status_code] += 1
 
-                if (code in codes.keys()):
-                    codes[code] += 1
+        total_file_size += file_size
+        count += 1
 
-            if (count_lines == 10):
-                print_msg(codes, file_size)
-                count_lines = 0
-
+        if count == 10:
+            printStats(total_file_size, possible_status)
+            count = 0
+    printStats(total_file_size, possible_status)
+except KeyboardInterrupt:
+    raise
 finally:
-    print_msg(codes, file_size)
+    printStats(total_file_size, possible_status)
