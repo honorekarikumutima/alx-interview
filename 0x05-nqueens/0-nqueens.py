@@ -1,69 +1,94 @@
 #!/usr/bin/python3
-"""
-Solution to the nqueens problem
-"""
-import sys
+
+"""Solves the N-Queens challenge."""
 
 
-def backtrack(r, n, cols, pos, neg, board):
+def n_queens(n: int):
     """
-    backtrack function to find solution
-    """
-    if r == n:
-        res = []
-        for l in range(len(board)):
-            for k in range(len(board[l])):
-                if board[l][k] == 1:
-                    res.append([l, k])
-        print(res)
-        return
+    Solve the N-Queens challenge.
 
-    for c in range(n):
-        if c in cols or (r + c) in pos or (r - c) in neg:
-            continue
-
-        cols.add(c)
-        pos.add(r + c)
-        neg.add(r - c)
-        board[r][c] = 1
-
-        backtrack(r+1, n, cols, pos, neg, board)
-
-        cols.remove(c)
-        pos.remove(r + c)
-        neg.remove(r - c)
-        board[r][c] = 0
-
-
-def nqueens(n):
-    """
-    Solution to nqueens problem
     Args:
-        n (int): number of queens. Must be >= 4
-    Return:
-        List of lists representing coordinates of each
-        queen for all possible solutions
-    """
-    cols = set()
-    pos_diag = set()
-    neg_diag = set()
-    board = [[0] * n for i in range(n)]
+        n (int): The size of the chessboard.
 
-    backtrack(0, n, cols, pos_diag, neg_diag, board)
+    Returns:
+        The chessboard with the Queens placed in non-attacking positions.
+    """
+
+    def is_non_attack(board: list, row: int, col: int) -> bool:
+        """
+        Check whether a slot is non-attacking when a Queen is placed.
+
+        Args:
+            board (list): The board to check.
+            row (int): The current row on the board.
+            col (int): The column of the board.
+
+        Returns:
+            bool: True if the position leads to a non-attacking placement,
+            else False
+        """
+        for i in range(row):
+            if (
+                board[i] == col  # check for vertical possible attacks
+                or board[i] - i == col - row
+                or board[i] + i == col + row
+            ):
+                return False
+
+        return True
+
+    def insert_queen(board: list, row: int) -> None:
+        """
+        Handle the placement of Queens in a non-attacking fashion.
+
+        Args:
+            board (list): The board to insert into (temporal).
+            row (int): The current row in the board.
+        """
+        if row == n:  # base case
+            chessboard.append([[i, board[i]] for i in range(n)])
+            return
+
+        for col in range(n):
+            if is_non_attack(board, row, col):
+                board[row] = col
+                insert_queen(board, row + 1)
+                board[row] = 0
+
+    chessboard = []
+    board = [0] * n
+    insert_queen(board, 0)
+
+    return chessboard
+
+
+def print_non_attack_combinations(chessboard) -> None:
+    """
+    Print all the non-attacking combinations of N-Queens.
+
+    Args:
+        chessboard: The list of all non-attacking combinations.
+    """
+    for row in chessboard:
+        print(row)
 
 
 if __name__ == "__main__":
-    n = sys.argv
-    if len(n) != 2:
+    """Entry point"""
+    import sys
+
+    if len(sys.argv) != 2:
         print("Usage: nqueens N")
         sys.exit(1)
-    try:
-        nn = int(n[1])
-        if nn < 4:
-            print("N must be at least 4")
-            sys.exit(1)
-        nqueens(nn)
-    except ValueError:
+
+    if not sys.argv[1].isdigit():
         print("N must be a number")
         sys.exit(1)
-        
+
+    N = int(sys.argv[1])
+    if N < 4:
+        print("N must be at least 4")
+        sys.exit(1)
+
+    print_non_attack_combinations(n_queens(N))
+    
